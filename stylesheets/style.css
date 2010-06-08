@@ -1,0 +1,16 @@
+/*
+	 CSS-Tricks Example
+	 by Chris Coyier
+	 http://css-tricks.com
+*/
+
+*					{ margin: 0; padding: 0; }
+body				{ font: 16px/2 Georgia, serif; }
+
+p                   { color: #666;}
+
+#page-wrap		    { width: 500px; margin: 0 auto; }
+
+.selected           { background: #bdf8ff; color: black; }
+
+#result             { width: 100%; padding: 3px; margin: 10px 0; }
