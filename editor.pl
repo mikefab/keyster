@@ -71,9 +71,9 @@ print <<END;
         <script type="text/javascript" src="javascript/jquery-1.3.2.js"></script>
         <script type="text/javascript" src="javascript/ui/ui.core.js"></script>
         <script type="text/javascript" src="javascript/ui/ui.slider.js"></script>
-		<script type="text/javascript" src="javascript/Zbrowse.js"></script>
-		<script type="text/javascript" src="javascript/Zprime.js"></script>
-		<script type="text/javascript" src="javascript/browser_detect.js"></script>
+		    <script type="text/javascript" src="javascript/Zbrowse.js"></script>
+		    <script type="text/javascript" src="javascript/Zprime.js"></script>
+		    <script type="text/javascript" src="javascript/browser_detect.js"></script>
 
 
 <STYLE TYPE="text/css"> 
@@ -991,7 +991,7 @@ function go_to_line(){
   prep_text = prep_text.replace(/^\\d+./,"");
   document.getElementById('text_space').innerHTML = prep_text;
 // The next line might just be needed when a new image with top and bottom buffers are added
-// setTimeout("document.getElementById('btn_focus').focus();document.getElementById('btn_focus').click();",1000);
+ setTimeout("document.getElementById('btn_focus').focus();document.getElementById('btn_focus').click();",1000);
 
   if(!parent.side_bar.transcription.document.getElementById(requested_line_number).style.backgroundColor.match(/yellow/)){
     unpaint_divs();
@@ -1515,7 +1515,7 @@ if($_=~/(\\|\')/){ #\ and ' require escaping
 
 
 
- print qq(<script>myArray['$escape_char$_'] = "$escape{$_}"; </script>);
+ print qq(<script>myArray['$escape_char$_'] = "$escape{$_}"; </script>\n);
 
 
 }
@@ -1524,7 +1524,7 @@ for(keys %diacritic){
 
 
 
- print qq(<script>myDiacritic["$_"] = "1"; </script>);
+ print qq(<script>myDiacritic["$_"] = "1"; </script>\n);
 
 
 }
