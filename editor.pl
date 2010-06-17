@@ -53,10 +53,9 @@ splice(@scriptures,0,2);
 $height_expansion_increment = 600; #this is the amount of the white padding added on top and bottom of image
 
 
-open(F,"characters.txt");#make sure that the first line of this file is blan
+open(F,"characters.txt");#This is a list of characters a user can inject into the text space. Array will be used to create button panel
  while(<F>){
-
-       push(@characters,$_);
+   push(@characters,$_);
  }
  close F;
 
@@ -96,15 +95,12 @@ input.button {
   
 function stateChanged()  {  
   if (xmlHttp.readyState==4 || xmlHttp.readyState=="complete")  {  
-
-	var thing = xmlHttp.responseText;
-	var mySplitResult = thing.split("***");
-
-  document.getElementById('button_div').innerHTML = mySplitResult[1];
-  document.getElementById("div_pages").innerHTML  = mySplitResult[0];  
+	  var thing = xmlHttp.responseText;
+	  var mySplitResult = thing.split("***");
+    document.getElementById('button_div').innerHTML = mySplitResult[1];
+    document.getElementById("div_pages").innerHTML  = mySplitResult[0];  
    }  
    else {  
-           //alert(xmlHttp.status);  
    }  
 }  
 
@@ -145,88 +141,65 @@ function setFocus(){
 }
 
 
-
 function check_character(character) {
-
 	if (window.getSelection) {
 		var selObj = window.getSelection();
-if ((selObj.anchorNode == null) && (!character)){
-return false;
-}
-if ((selObj.anchorNode == null) && (character)){
-selObj.anchorNode.nodeValue = character;
-}
-		var selection_length = selObj.toString().length;
-		if(document.getElementById('text_space').innerHTML.length==0){ //LINE IS EMPTY, just insert character
- 		  document.getElementById('text_space').innerHTML=character;
-			//NEED TO COMPLETE THIS	
-selObj.nodeValue=character;
-return_cursor(selObj.focusNode, 2);
-
-return false;
-		}
-		//determine if user highlighted left to right or right to left.
-		if(selObj.anchorOffset < selObj.focusOffset){
-			cursorPos = selObj.anchorOffset;
-
-		}else{
-			cursorPos = selObj.focusOffset;
-
-		}
-
-		if(cursorPos>0){
-			var pre  = selObj.anchorNode.nodeValue.substring(0,cursorPos);
-			var post = selObj.anchorNode.nodeValue.substring(cursorPos,selObj.anchorNode.nodeValue.length);
-
-			for (var i in myArray) {
-				var escape_array = i.split("");
-
-				if(!pre.substring(pre.length-3,pre.length).match("\\\\" + escape_array[2]  + "\\\\" + escape_array[2] + "") && (pre.substring(pre.length-2,pre.length).match("\\\\" + escape_array[2]  + escape_array[3] + "")) ){
-				
+  if ((selObj.anchorNode == null) && (!character)){ //
+  	return false;
+  }
+  if ((selObj.anchorNode == null) && (character)){
+	  selObj.anchorNode.nodeValue = character;
+	}
+	var selection_length = selObj.toString().length;
+	if(document.getElementById('text_space').innerHTML.length==0){ //LINE IS EMPTY, just insert character
+ 		document.getElementById('text_space').innerHTML=character;
+		//NEED TO COMPLETE THIS	
+		selObj.nodeValue=character;
+		return_cursor(selObj.focusNode, 2);
+		return false;
+	}
+	//determine if user highlighted left to right or right to left.
+	if(selObj.anchorOffset < selObj.focusOffset){
+		cursorPos = selObj.anchorOffset;
+	}else{
+		cursorPos = selObj.focusOffset;
+	}
+	
+	if(cursorPos>0){
+		var pre  = selObj.anchorNode.nodeValue.substring(0,cursorPos);
+		var post = selObj.anchorNode.nodeValue.substring(cursorPos,selObj.anchorNode.nodeValue.length);
+		for (var i in myArray) {
+			var escape_array = i.split("");
+			if(!pre.substring(pre.length-3,pre.length).match("\\\\" + escape_array[2]  + "\\\\" + escape_array[2] + "") && (pre.substring(pre.length-2,pre.length).match("\\\\" + escape_array[2]  + escape_array[3] + "")) ){
 			pre =pre.replace(/.{2}\$/,myArray[i]);
 		 	selObj.anchorNode.nodeValue = pre+post;
 			t = selObj.focusOffset;
 			if (t == selObj.focusNode.nodeValue.length){t++;}
-			return_cursor(selObj.focusNode, t);
+				return_cursor(selObj.focusNode, t);
 				}
 			}
-
-      if(character){
-
-				pre  =  selObj.anchorNode.nodeValue.substring(0,selObj.anchorOffset);		
-				post =  selObj.anchorNode.nodeValue.substring(selObj.focusOffset,selObj.focusNode.nodeValue.length);	
+	if(character){
+		pre  =  selObj.anchorNode.nodeValue.substring(0,selObj.anchorOffset);		
+		post =  selObj.anchorNode.nodeValue.substring(selObj.focusOffset,selObj.focusNode.nodeValue.length);	
 		if(selObj.anchorNode == selObj.focusNode){
-
 			selObj.focusNode.nodeValue= pre + character + post;
-	      t= pre.length;
-
-
-
-
-				if(!myDiacritic[character]){
-
-	      t++;
-				}
-
-
-				return_cursor(selObj.focusNode, t);
-}else{		
+	    t= pre.length;
+			if(!myDiacritic[character]){
+	    	t++;
+			}
+			return_cursor(selObj.focusNode, t);
+			}else{		
 				post =  selObj.anchorNode.nodeValue.substring(selObj.focusOffset,selObj.focusNode.nodeValue.length);	
 				temp_node = selObj.focusNode;
         window.getSelection().deleteFromDocument(); 
-temp_node.nodeValue= character+temp_node.nodeValue;
-//return_cursor(temp_node, 2);
+				temp_node.nodeValue= character+temp_node.nodeValue;
+				//return_cursor(temp_node, 2);
 				setTimeout("return_cursor(temp_node, 2);",500);
-
-
-}
-			  post =  post.substring(window.getSelection().toString().length,post.length);
-	//		  selObj.focusNode.nodeValue = pre+character+post;
-//				selObj.focusNode.nodeValue = character;
-	      t=selObj.focusOffset;
-        t+=2;	
-				return_cursor(selObj.focusNode, t);
-
+			}
+			post =  post.substring(window.getSelection().toString().length,post.length);
+	    t=selObj.focusOffset;
+      t+=2;	
+			return_cursor(selObj.focusNode, t);
 			}
  		}else{
 		  if(character){
@@ -1772,25 +1745,16 @@ function toggle_buttons(){
 
 END
 
-for(@characters){
-       next if $_=~/^\./;
-       $_=~s/\n//;
-       $thing = $_;
-if($thing!~/\W/){
-       print qq(&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;);
-       next;
-}
-         $thing=~s/\s//g;
-
-
-
-
-
-
-
-
- print qq(<input class="button" type="button" id="some_button"  name="some_button" onClick = "check_character('$thing');" title="$reverse_escape{$_}"  value="$_">);
-
+for(@characters){ #create button panel
+  next if $_=~/^\./;
+  $_=~s/\n//;
+  $character = $_;
+	if($character!~/\W/){
+  	print qq(&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;);
+  	next;
+	}
+	$character=~s/\s//g;
+  print qq(<input class="button" type="button" id="some_button"  name="some_button" onClick = "check_character('$character');" title="$reverse_escape{$_}"  value="$_">);
 }
 
 print <<END;
