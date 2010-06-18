@@ -159,13 +159,12 @@ function check_character(character) {
 	  }
 	  //determine if user highlighted left to right or right to left.
 
-    if(selObj.anchorOffset < selObj.focusOffset){ //user highlighted left to right.
+    if(selObj.anchorOffset < selObj.focusOffset){ //user highlighted left to right.(only within a single node)
 		  cursorPos = selObj.anchorOffset;
-			direction = "left";
     }else{																				//user highlighted right to left
 	    cursorPos = selObj.focusOffset;
-			direction = "right";
     }
+
 	  //Check previous character to determine if it's an Escape character indicating need for substitution
 	  if(cursorPos>0){ //NOT sure why I'm concerned this will not be a positive number
 	    var pre  = selObj.anchorNode.nodeValue.substring(0,cursorPos);
@@ -187,15 +186,16 @@ function check_character(character) {
       
 	    if(character){  ///User pressed character button
 
-//		    pre  =  selObj.anchorNode.nodeValue.substring(0,selObj.anchorOffset);		
-		    pre  =  selObj.anchorNode.nodeValue.substring(0,cursorPos);		
 
-				if(direction.match("left")){
-			    post =  selObj.anchorNode.nodeValue.substring(selObj.focusOffset,selObj.focusNode.nodeValue.length);	
-				}else{
-			    post =  selObj.anchorNode.nodeValue.substring(selObj.anchorOffset,selObj.anchorNode.nodeValue.length);	
-				}
+
+
 		    if(selObj.anchorNode == selObj.focusNode){ //Selected area does NOT cross nodes
+		      pre  =  selObj.anchorNode.nodeValue.substring(0,cursorPos);		
+				  if(selObj.anchorOffset < selObj.focusOffset){ //user highlighted left to right.
+			      post =  selObj.anchorNode.nodeValue.substring(selObj.focusOffset,selObj.focusNode.nodeValue.length);	
+				  }else{
+			      post =  selObj.anchorNode.nodeValue.substring(selObj.anchorOffset,selObj.anchorNode.nodeValue.length);	
+				  }
 			    selObj.focusNode.nodeValue= pre + character + post;
 	        t= pre.length;
 			    if(!myDiacritic[character]){
@@ -206,18 +206,15 @@ function check_character(character) {
 					return false;
 
 		    }else{ //Selected area DOES cross nodes		
-				  if(direction.match("left")){
+
+					if(selObj.anchorOffset > selObj.focusOffset){
 		        post =  selObj.focusNode.nodeValue.substring(selObj.focusOffset,selObj.focusNode.nodeValue.length);	
 			     temp_node = selObj.focusNode; //Need to copy this before removing selection 
 				  }else{
-
 		        post =  selObj.anchorNode.nodeValue.substring(selObj.anchorOffset,selObj.anchorNode.nodeValue.length);	
-
-			     temp_node = selObj.anchorNode; //Need to copy this before removing selection 
+			      temp_node = selObj.anchorNode; //Need to copy this before removing selection 
           }
-//alert(temp_node.nodeValue);
 
-//			    temp_node = selObj.focusNode; //Need to copy this before removing selection 
           window.getSelection().deleteFromDocument(); 
 		      temp_node.nodeValue= character+temp_node.nodeValue;
 			    //return_cursor(temp_node, 2);
@@ -243,7 +240,7 @@ function check_character(character) {
 }
 
 function return_cursor(the_node,len){ //the_node is 
-	alert(direction + " " + the_node.nodeValue + " " + len);
+
   len--;
 	window.getSelection().removeAllRanges();	
 	var div = document.createRange();
