@@ -142,66 +142,95 @@ function setFocus(){
 
 
 function check_character(character) {
-	if (window.getSelection) {
+ 	if (window.getSelection) {
 		var selObj = window.getSelection();
-  if ((selObj.anchorNode == null) && (!character)){ //
-  	return false;
-  }
-  if ((selObj.anchorNode == null) && (character)){
-	  selObj.anchorNode.nodeValue = character;
-	}
-	var selection_length = selObj.toString().length;
-	if(document.getElementById('text_space').innerHTML.length==0){ //LINE IS EMPTY, just insert character
- 		document.getElementById('text_space').innerHTML=character;
-		//NEED TO COMPLETE THIS	
-		selObj.nodeValue=character;
-		return_cursor(selObj.focusNode, 2);
-		return false;
-	}
-	//determine if user highlighted left to right or right to left.
-	if(selObj.anchorOffset < selObj.focusOffset){
-		cursorPos = selObj.anchorOffset;
-	}else{
-		cursorPos = selObj.focusOffset;
-	}
-	
-	if(cursorPos>0){
-		var pre  = selObj.anchorNode.nodeValue.substring(0,cursorPos);
-		var post = selObj.anchorNode.nodeValue.substring(cursorPos,selObj.anchorNode.nodeValue.length);
-		for (var i in myArray) {
-			var escape_array = i.split("");
-			if(!pre.substring(pre.length-3,pre.length).match("\\\\" + escape_array[2]  + "\\\\" + escape_array[2] + "") && (pre.substring(pre.length-2,pre.length).match("\\\\" + escape_array[2]  + escape_array[3] + "")) ){
-			pre =pre.replace(/.{2}\$/,myArray[i]);
-		 	selObj.anchorNode.nodeValue = pre+post;
-			t = selObj.focusOffset;
-			if (t == selObj.focusNode.nodeValue.length){t++;}
-				return_cursor(selObj.focusNode, t);
+    if ((selObj.anchorNode == null) && (!character)){ // NOT SURE THAT THIS IS NEEDED 6.17.10
+  	  return false;
+    }
+    if ((selObj.anchorNode == null) && (character)){ //User has clicked a button in Characters panel. Insert character and then look behind it for possible escape.
+	    selObj.anchorNode.nodeValue = character;
+	  }
+	  var selection_length = selObj.toString().length;
+	  if(document.getElementById('text_space').innerHTML.length==0){ //LINE IS EMPTY, just insert character
+ 		  document.getElementById('text_space').innerHTML=character;
+		  selObj.nodeValue=character;
+		  return_cursor(selObj.focusNode, 2); //FIREFOX DOESN't HANDLE THIS. Need alternative method to place cursor
+		  return false;
+	  }
+	  //determine if user highlighted left to right or right to left.
+
+    if(selObj.anchorOffset < selObj.focusOffset){ //user highlighted left to right.
+		  cursorPos = selObj.anchorOffset;
+			direction = "left";
+    }else{																				//user highlighted right to left
+	    cursorPos = selObj.focusOffset;
+			direction = "right";
+    }
+	  //Check previous character to determine if it's an Escape character indicating need for substitution
+	  if(cursorPos>0){ //NOT sure why I'm concerned this will not be a positive number
+	    var pre  = selObj.anchorNode.nodeValue.substring(0,cursorPos);
+		  var post = selObj.anchorNode.nodeValue.substring(cursorPos,selObj.anchorNode.nodeValue.length);
+      for (var i in myArray) {
+			  var escape_array = i.split("");
+			  if(!pre.substring(pre.length-3,pre.length).match("\\\\" + escape_array[2]  + "\\\\" + escape_array[2] + "") && (pre.substring(pre.length-2,pre.length).match("\\\\" + escape_array[2]  + escape_array[3] + "")) ){
+			    pre =pre.replace(/.{2}\$/,myArray[i]);
+		 	    selObj.anchorNode.nodeValue = pre+post;
+			    t = selObj.focusOffset;
+			    if (t == selObj.focusNode.nodeValue.length){
+			      t++;
+ 			    }
+			    return_cursor(selObj.focusNode, t);
+			   return false; //Substitution is made. Should be able to exit here.
+
+        }
+      }          
+      
+	    if(character){  ///User pressed character button
+
+//		    pre  =  selObj.anchorNode.nodeValue.substring(0,selObj.anchorOffset);		
+		    pre  =  selObj.anchorNode.nodeValue.substring(0,cursorPos);		
+
+				if(direction.match("left")){
+			    post =  selObj.anchorNode.nodeValue.substring(selObj.focusOffset,selObj.focusNode.nodeValue.length);	
+				}else{
+			    post =  selObj.anchorNode.nodeValue.substring(selObj.anchorOffset,selObj.anchorNode.nodeValue.length);	
 				}
-			}
-	if(character){
-		pre  =  selObj.anchorNode.nodeValue.substring(0,selObj.anchorOffset);		
-		post =  selObj.anchorNode.nodeValue.substring(selObj.focusOffset,selObj.focusNode.nodeValue.length);	
-		if(selObj.anchorNode == selObj.focusNode){
-			selObj.focusNode.nodeValue= pre + character + post;
-	    t= pre.length;
-			if(!myDiacritic[character]){
-	    	t++;
-			}
-			return_cursor(selObj.focusNode, t);
-			}else{		
-				post =  selObj.anchorNode.nodeValue.substring(selObj.focusOffset,selObj.focusNode.nodeValue.length);	
-				temp_node = selObj.focusNode;
-        window.getSelection().deleteFromDocument(); 
-				temp_node.nodeValue= character+temp_node.nodeValue;
-				//return_cursor(temp_node, 2);
-				setTimeout("return_cursor(temp_node, 2);",500);
-			}
-			post =  post.substring(window.getSelection().toString().length,post.length);
-	    t=selObj.focusOffset;
-      t+=2;	
-			return_cursor(selObj.focusNode, t);
-			}
- 		}else{
+		    if(selObj.anchorNode == selObj.focusNode){ //Selected area does NOT cross nodes
+			    selObj.focusNode.nodeValue= pre + character + post;
+	        t= pre.length;
+			    if(!myDiacritic[character]){
+	    	    t++;
+			    }
+					t++;
+			    return_cursor(selObj.focusNode, t); 
+					return false;
+
+		    }else{ //Selected area DOES cross nodes		
+				  if(direction.match("left")){
+		        post =  selObj.focusNode.nodeValue.substring(selObj.focusOffset,selObj.focusNode.nodeValue.length);	
+			     temp_node = selObj.focusNode; //Need to copy this before removing selection 
+				  }else{
+
+		        post =  selObj.anchorNode.nodeValue.substring(selObj.anchorOffset,selObj.anchorNode.nodeValue.length);	
+
+			     temp_node = selObj.anchorNode; //Need to copy this before removing selection 
+          }
+//alert(temp_node.nodeValue);
+
+//			    temp_node = selObj.focusNode; //Need to copy this before removing selection 
+          window.getSelection().deleteFromDocument(); 
+		      temp_node.nodeValue= character+temp_node.nodeValue;
+			    //return_cursor(temp_node, 2);
+		      setTimeout("return_cursor(temp_node, 2);",500);
+					return false; 
+		    }
+				//Not sure why I have the next 4 lines of code
+		    post =  post.substring(window.getSelection().toString().length,post.length);
+	      t=selObj.focusOffset;
+        t+=2;	
+        return_cursor(selObj.focusNode, t);
+	    }
+    }else{ //if cursorPos is less than zero
 		  if(character){
 			  pre = "";
 			  var post = selObj.anchorNode.nodeValue.substring(0,selObj.anchorNode.nodeValue.length);
@@ -212,7 +241,9 @@ function check_character(character) {
     }
   }
 }
-function return_cursor(the_node,len){
+
+function return_cursor(the_node,len){ //the_node is 
+	alert(direction + " " + the_node.nodeValue + " " + len);
   len--;
 	window.getSelection().removeAllRanges();	
 	var div = document.createRange();
@@ -221,8 +252,6 @@ function return_cursor(the_node,len){
 	window.getSelection().addRange(div);
 	return false;
 }
-
-
 
 
 function place_cursor(length){
@@ -1355,7 +1384,7 @@ function make_font_consistant(){
 <td>letter spacing:&nbsp;</td><td><div id="slider_kern" style="width:200px;" onClick="\$('#slider_kern').slider('value',(\$('#slider_kern').slider('value')-1));"></div></td><td><div id="kern_display" style="display:inline"></div></td>
 </tr></table>
 
-<button id = "focus_text_space" name = "focus_text_space" onClick = "javascript:document.getElementById('text_space').focus();" style="display:none;">return cursor</button>
+<button id = "focus_text_space" name="focus_text_space" onClick = "javascript:document.getElementById('text_space').focus();" style="display:none;">return cursor</button>
 <button id="btn_line_up"   name="btn_line_up"    onClick="send_text(1);if(2<=parseInt(document.getElementById('line_number').value)){document.getElementById('line_number').value--;go_to_line();}" style="display:inline;">Save + Line up</button>
 <button id="btn_line_down" name="btn_line_down"  onClick="send_text(1);if(parseInt(parent.side_bar.transcription.document.getElementById('total_lines').innerHTML)>parseInt(document.getElementById('line_number').value)){document.getElementById('line_number').value++;go_to_line();}" style="display:inline;">Save + Line down</button>
 <button id="btn_next_asterisk" name="btn_next_asterisk" onClick="send_text(1);go_to_next_asterisk();">Save + next *</button>
