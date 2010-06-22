@@ -6,14 +6,13 @@ use Image::Size;
 use utf8;
 print header(-charset => 'UTF-8');
 
-open(F,"escapes2.txt");
+open(F,"escapes2.txt"); #This file contains escape characters combinations and their symbols
 foreach $line(<F>){
 	chomp;
 	$line=~s/\n//;
 	#$line=~s/\\/\\\\/g;
 
 	@line=split(/\t/,$line);
-	
 	  utf8::encode($line[1]);
 	  utf8::decode($line[1]);
 	  utf8::encode($line[0]);
@@ -32,16 +31,9 @@ foreach $line(<F>){
 	$line=~s/\n//;
   $line=~s/\s+//g;
 	#$line=~s/\\/\\\\/g;
-	
-
-  	$diacritic{"$line"}=qq(1);	
-
+ 	$diacritic{"$line"}=qq(1);	
 }
 close F;
-
-
-
-
 
 opendir(DIR,"images");
 @scriptures = readdir(DIR);
@@ -129,73 +121,86 @@ function htmlData(url, qStr)  {
   
    url=url+"?"+qStr;  
    url=url+"&sid="+Math.random();  
-
    xmlHttp.onreadystatechange=stateChanged;  
    xmlHttp.open("GET",url,true) ;  
    xmlHttp.send(null);  
 } 
 
 
-function setFocus(){
-	document.getElementById('text_space').focus();
+function get_start_selection(){ //Returns left or right depending on where the user began selection in text space
+ 	if (window.getSelection) {
+    var selObj = window.getSelection();
+		if(selObj.anchorNode==selObj.focusNode){ //Section covers singler node
+	  	if(selObj.anchorOffset < selObj.focusOffset){ //user highlighted left to right.(only within a single node)
+				return("left");
+			}else{
+				return("right");
+			}
+		}else{ //Selection covers multiple nodes
+			var anchor_pos = selObj.focusNode.compareDocumentPosition( selObj.anchorNode ); 
+			var focus_pos = selObj.anchorNode.compareDocumentPosition( selObj.focusNode ); 
+			if(anchor_pos<focus_pos){
+				return("left");
+			}else{
+				return("right");
+			}
+		}
+	}
 }
 
 
-function check_character(character) {
+
+
+function check_character(character) { //Used on keyup and when a character button is pushed. Checks for escape characters, makes substitutions over single and multi nodes
+	var sel_start = get_start_selection(); //Returns left or right depending on which direction user made selection
+
  	if (window.getSelection) {
 		var selObj = window.getSelection();
-    if ((selObj.anchorNode == null) && (!character)){ // NOT SURE THAT THIS IS NEEDED 6.17.10
+    if ((selObj.anchorNode == null) && (!character)){ // This is just a user pressing page up or page down. Exit
   	  return false;
     }
-    if ((selObj.anchorNode == null) && (character)){ //User has clicked a button in Characters panel. Insert character and then look behind it for possible escape.
+    if ((selObj.anchorNode == null) && (character)){ //I'm not able to trigger this. Had before: User has clicked a button in Characters panel. Insert character and then look behind it for possible escape.
+			alert('find me and explain me');
 	    selObj.anchorNode.nodeValue = character;
 	  }
-	  var selection_length = selObj.toString().length;
+	  var selection_length = selObj.toString().length; //Get length of selection string
 	  if(document.getElementById('text_space').innerHTML.length==0){ //LINE IS EMPTY, just insert character
  		  document.getElementById('text_space').innerHTML=character;
 		  selObj.nodeValue=character;
 		  return_cursor(selObj.focusNode, 2); //FIREFOX DOESN't HANDLE THIS. Need alternative method to place cursor
 		  return false;
 	  }
-	  //determine if user highlighted left to right or right to left.
 
-    if(selObj.anchorOffset < selObj.focusOffset){ //user highlighted left to right.(only within a single node)
-		  cursorPos = selObj.anchorOffset;
-    }else{																				//user highlighted right to left
-	    cursorPos = selObj.focusOffset;
-    }
+ 		if(selObj.anchorOffset < selObj.focusOffset){ //user highlighted left to right.(only within a single node)
+			cursorPos = selObj.anchorOffset;
+		}else{ //user highlighted right to left
+			cursorPos = selObj.focusOffset;
+		}
 
 	  //Check previous character to determine if it's an Escape character indicating need for substitution
-	  if(cursorPos>0){ //NOT sure why I'm concerned this will not be a positive number
+	  if(cursorPos>0){ //If cursorPos is not 0, then selection does not begin or end at the start of a node.
 	    var pre  = selObj.anchorNode.nodeValue.substring(0,cursorPos);
 		  var post = selObj.anchorNode.nodeValue.substring(cursorPos,selObj.anchorNode.nodeValue.length);
-      for (var i in myArray) {
+      for (var i in my_escapes) {
 			  var escape_array = i.split("");
 			  if(!pre.substring(pre.length-3,pre.length).match("\\\\" + escape_array[2]  + "\\\\" + escape_array[2] + "") && (pre.substring(pre.length-2,pre.length).match("\\\\" + escape_array[2]  + escape_array[3] + "")) ){
-			    pre =pre.replace(/.{2}\$/,myArray[i]);
+			    pre =pre.replace(/.{2}\$/,my_escapes[i]);
 		 	    selObj.anchorNode.nodeValue = pre+post;
-			    t = selObj.focusOffset;
-			    if (t == selObj.focusNode.nodeValue.length){
-			      t++;
- 			    }
+					t = pre.length +1;
 			    return_cursor(selObj.focusNode, t);
 			   return false; //Substitution is made. Should be able to exit here.
-
-        }
-      }          
+        }//No escape was found
+      }// All my_escapes has been looped through.          
       
 	    if(character){  ///User pressed character button
-
-
-
-
-		    if(selObj.anchorNode == selObj.focusNode){ //Selected area does NOT cross nodes
+		    if(selObj.anchorNode == selObj.focusNode){ //Selected area DOES NOT cross nodes
 		      pre  =  selObj.anchorNode.nodeValue.substring(0,cursorPos);		
-				  if(selObj.anchorOffset < selObj.focusOffset){ //user highlighted left to right.
-			      post =  selObj.anchorNode.nodeValue.substring(selObj.focusOffset,selObj.focusNode.nodeValue.length);	
-				  }else{
-			      post =  selObj.anchorNode.nodeValue.substring(selObj.anchorOffset,selObj.anchorNode.nodeValue.length);	
-				  }
+	 				if(selObj.anchorOffset < selObj.focusOffset){ //user highlighted left to right.
+						post = selObj.anchorNode.nodeValue.substring(selObj.focusOffset,selObj.focusNode.nodeValue.length);
+					}else{
+						post = selObj.anchorNode.nodeValue.substring(selObj.anchorOffset,selObj.anchorNode.nodeValue.length);
+					}
+
 			    selObj.focusNode.nodeValue= pre + character + post;
 	        t= pre.length;
 			    if(!myDiacritic[character]){
@@ -207,18 +212,19 @@ function check_character(character) {
 
 		    }else{ //Selected area DOES cross nodes		
 
-					if(selObj.anchorOffset > selObj.focusOffset){
-		        post =  selObj.focusNode.nodeValue.substring(selObj.focusOffset,selObj.focusNode.nodeValue.length);	
-			     temp_node = selObj.focusNode; //Need to copy this before removing selection 
-				  }else{
-		        post =  selObj.anchorNode.nodeValue.substring(selObj.anchorOffset,selObj.anchorNode.nodeValue.length);	
-			      temp_node = selObj.anchorNode; //Need to copy this before removing selection 
-          }
 
+					if(sel_start =="left"){
+					  post = selObj.focusNode.nodeValue.substring(selObj.focusOffset,selObj.focusNode.nodeValue.length);
+					  temp_node = selObj.focusNode; //Need to copy this before removing selection
+					}else{
+						post = selObj.anchorNode.nodeValue.substring(selObj.anchorOffset,selObj.anchorNode.nodeValue.length);
+						temp_node = selObj.anchorNode; //Need to copy this before removing selection
+					}
           window.getSelection().deleteFromDocument(); 
-		      temp_node.nodeValue= character+temp_node.nodeValue;
-			    //return_cursor(temp_node, 2);
-		      setTimeout("return_cursor(temp_node, 2);",500);
+				  temp_node.nodeValue= character+temp_node.nodeValue;
+
+
+				  return_cursor(temp_node, 2);
 					return false; 
 		    }
 				//Not sure why I have the next 4 lines of code
@@ -227,21 +233,46 @@ function check_character(character) {
         t+=2;	
         return_cursor(selObj.focusNode, t);
 	    }
-    }else{ //if cursorPos is less than zero
+    }else{ //if cursorPos is less than zero, selection begins or ends at the start of a node, this is not an escape situation.
+
 		  if(character){
-			  pre = "";
-			  var post = selObj.anchorNode.nodeValue.substring(0,selObj.anchorNode.nodeValue.length);
-			  post =  post.substring(window.getSelection().toString().length,post.length);
-			  selObj.anchorNode.nodeValue = pre+character+post;
-			  place_cursor(1);
+		    if(selObj.anchorNode == selObj.focusNode){ //Selected area does NOT cross nodes. User click into empty text space, hit delete, then hit a button 
+				selObj.focusNode.nodeValue = character;
+			  	pre = "";
+				}else{
+				  var post = selObj.focusNode.nodeValue.substring(selObj.focusOffset,selObj.focusNode.nodeValue.length);
+					selObj.focusNode.nodeValue = character+post;
+					temp1= selObj.anchorNode;
+					temp2= selObj.focusNode;
+					window.getSelection().removeAllRanges();	
+					var div = document.createRange();
+					div.setStart(temp1, 0);
+					div.setEnd(temp2, 0);
+					window.getSelection().addRange(div);
+	        window.getSelection().deleteFromDocument(); 
+	        return_cursor(temp2, 2);
+				}
       }
     }
   }
 }
 
+
+
+function getElementPos(n) {
+  var K = -1;
+  for (var i = n.parentNode.childNodes.length; i >= 0; i--){
+ var n = parentNode.childNodes[i];
+
+     alert(i + " .. " + n.parentNode.childNodes[i].nodeType);
+  }
+}
+
+
 function return_cursor(the_node,len){ //the_node is 
 
   len--;
+
 	window.getSelection().removeAllRanges();	
 	var div = document.createRange();
 	div.setStart(the_node, len);
@@ -252,7 +283,6 @@ function return_cursor(the_node,len){ //the_node is
 
 
 function place_cursor(length){
-
 	window.getSelection().removeAllRanges();	
 	var textC = document.getElementById('text_space').lastChild.childNodes[0];
 	var div = document.createRange();
@@ -288,16 +318,14 @@ if((document.getElementById('text_space').innerHTML.length<=0)&&(event.keyCode!=
 		document.getElementById('button_set_font').click();
 	}
 }
-//	if(event.keyCode==36){
+//	if(event.keyCode==36){ //Home key
 //		document.getElementById('line_number').value =  1;
 //		go_to_line();
 //	} 
 	if(event.keyCode==35){document.getElementById('line_number').value =  parent.side_bar.transcription.lines.length;
 		go_to_line();
 	}
-	if(event.keyCode==33){ //page up
-//		document.getElementById('btn_line_up').click();
-
+	if(event.keyCode==33){ //page up = to to previous line
 		if(parseInt(document.getElementById('line_number').value)>1){
 		  document.getElementById('line_number').value--;
 		  go_to_line();
@@ -311,7 +339,7 @@ if((document.getElementById('text_space').innerHTML.length<=0)&&(event.keyCode!=
 	 	scroll_iframe('arrow_down');
      }
 
-	if(event.keyCode==34){ //page down
+	if(event.keyCode==34){ //page down = go to next line
 		if(parseInt(parent.side_bar.transcription.document.getElementById('total_lines').innerHTML)>parseInt(document.getElementById('line_number').value)){
 		  document.getElementById('line_number').value++;
 		  go_to_line();
@@ -319,13 +347,13 @@ if((document.getElementById('text_space').innerHTML.length<=0)&&(event.keyCode!=
 	}
 
 
-	if(event.keyCode==220) { // back slash
+	if(event.keyCode==220) { // back slash //This is probably legacy 6/22/10
 		last_character_is_backslash =1;
 	} else{
 		 last_character_is_backslash=0; 
 	} 
 
-	if (event.keyCode == 13){
+	if (event.keyCode == 13){ //return key //I believe that the contentEditable div sneakes tags in sometimes on its own.
 	 	if(document.getElementById("text_space").innerHTML.match(/><br></i)){
 	 		document.getElementById("text_space").innerHTML =document.getElementById("text_space").innerHTML.replace(/<br>/ig," ");
 
@@ -357,13 +385,6 @@ function do_key_up_stuff(event){
 		scroll_iframe_left_or_right('arrow_right');
 	}
 
-//Originally arrow up and down were here. But here they don't scroll continuously when pressed down. Moved to do_key_down_stuff
-//	if (event.keyCode == 38){
-//		scroll_iframe('arrow_up');
-//	 }
-//	 if (event.keyCode == 40){
-//	 	scroll_iframe('arrow_down');
-//	 };
 
 	if(event.keyCode==8 ){ //back space 
 		if(document.getElementById('text_space').innerHTML.length==0){
@@ -577,7 +598,6 @@ print <<END;
 
 
 function do_initial_stuff(){
-
 	set_font_slider_options("roman");
 	document.getElementById('text_space').innerHTML="";
 	document.getElementById('iframe_scripture').contentWindow.document.body.scrollTop = 2000000; //probably can get rid of this since have scrollHeight
@@ -949,16 +969,17 @@ document.form_transcription.kern.value = ui.value +"px";
 
 
 function go_to_line(){
+
   var requested_line_number = document.getElementById('line_number').value;
   \$("#line_number_display").html(requested_line_number);
 
   var next_number = parseInt(requested_line_number) ;
   if(parent.side_bar.transcription.document.getElementById(requested_line_number).style.display=="none"){
     \$("#should_scroll").html('yes');
-
   }else{
 		\$("#should_scroll").html('no');
 	}
+
   //set style attributes
   document.getElementById('font_size_display').innerHTML   =  parent.side_bar.transcription.document.getElementById(requested_line_number).getAttribute('font_size').replace(/(px|\\s)/,"") +"px";
   document.getElementById('input_box_display').innerHTML   =  parent.side_bar.transcription.document.getElementById(requested_line_number).getAttribute('box_height').replace(/(px|\\s)/,"") +"px";
@@ -979,24 +1000,23 @@ function go_to_line(){
   document.getElementById('row').value = parseInt(parent.side_bar.transcription.document.getElementById(requested_line_number).getAttribute('row'));
   document.getElementById('col').value = parseInt(parent.side_bar.transcription.document.getElementById(requested_line_number).getAttribute('col'));
 	
- // setTimeout("document.getElementById('original_expansion_height').innerHTML = window.frames['iframe_scripture'].document.getElementById('pic').height;",500);
+//focus window on line in image
   set_test_position(parent.side_bar.transcription.document.getElementById(requested_line_number).getAttribute('x1'),parent.side_bar.transcription.document.getElementById(requested_line_number).getAttribute('y1'),parent.side_bar.transcription.document.getElementById(requested_line_number).getAttribute('x2'),parent.side_bar.transcription.document.getElementById(requested_line_number).getAttribute('y1'));
 
 //set text
-
   var prep_text = parent.side_bar.transcription.document.getElementById(requested_line_number).innerHTML;
 
   prep_text = prep_text.replace(/<br>\$/,"");
   prep_text = prep_text.replace(/^\\d+./,"");
   document.getElementById('text_space').innerHTML = prep_text;
 // The next line might just be needed when a new image with top and bottom buffers are added
- setTimeout("document.getElementById('btn_focus').focus();document.getElementById('btn_focus').click();",1000);
-
+   setTimeout("document.getElementById('btn_focus').focus();document.getElementById('btn_focus').click();",1000);
   if(!parent.side_bar.transcription.document.getElementById(requested_line_number).style.backgroundColor.match(/yellow/)){
     unpaint_divs();
     parent.side_bar.transcription.document.getElementById(requested_line_number).style.backgroundColor="yellow";
     scroll_to_line_in_payne();
   }
+  document.getElementById('focus_text_space').click(); //place cursor at beginning of newly arrived to line
 }
 
 //unpaint all divs before changing a single one to yellow
@@ -1015,15 +1035,11 @@ function scroll_to_line_in_payne(){
 
 }
 
-
 function set_test_position(x1,y1,x2, y2){
 
 	set_highlight_in_scripture_small(x1, y1,x2, y2);
-
 	//add 300 to the y points so they fit in the buffer version of the image
 	y1 = parseInt(y1)+300; //NEEDED for buffered images
-
-
 
 	window.frames['iframe_scripture'].document.getElementById('pic').width = document.getElementById('first_width').innerHTML;
 	percent_of_frame_width = (window.frames['iframe_scripture'].document.getElementById('pic').width * 100)/ window.frames['iframe_scripture'].document.body.clientWidth;
@@ -1036,8 +1052,6 @@ function set_test_position(x1,y1,x2, y2){
 	document.getElementById('iframe_scripture').contentWindow.document.body.scrollTop = ((y1 * times_to_zoom)-((iframe_height/2)));
 	document.getElementById('iframe_scripture').contentWindow.document.body.scrollLeft = (x1 * times_to_zoom);
 
-
-
 	\$('#slider_zoom').slider('value',parseInt(times_to_zoom*100));	
 	document.getElementById('zoom_display').innerHTML = parseInt(times_to_zoom*100)+"%";
 	//THIS IS TEMPORARY RESIZE SPECIFIC TO ONE BOOK -mike 2.6.10
@@ -1047,51 +1061,8 @@ function set_test_position(x1,y1,x2, y2){
 	var recorded_font_size = parent.side_bar.transcription.document.getElementById(document.getElementById('line_number').value).getAttribute('font_size').replace(/(px|\\s)/g,"");
 	document.getElementById('text_space').style.fontSize = Math.round((times_to_zoom * recorded_font_size))+"px";	
 	document.getElementById('auto_expanded_font_size').innerHTML = Math.round((times_to_zoom * recorded_font_size));	
-
- 
-	document.getElementById('display_times_to_zoom').innerHTML=times_to_zoom;
-
-}
-
-
-
-function set_test_position_o(point_2_x,point_2_y,point_1_x, point_1_y){
-
-	set_highlight_in_scripture_small(point_2_y, point_2_x,point_1_x, point_1_y);
-
-	//add 300 to the y points so they fit in the buffer version of the image
-	point_2_y = parseInt(point_2_y)+300;
-	point_1_y+= parseInt(point_1_y)+300;
-
-	window.frames['iframe_scripture'].document.getElementById('pic').style.width="";
-	window.frames['iframe_scripture'].document.getElementById('pic').width = document.getElementById('first_width').innerHTML;
-
-	percent_of_frame_width = (window.frames['iframe_scripture'].document.getElementById('pic').width * 100)/ window.frames['iframe_scripture'].document.body.clientWidth;
-
-	percent_of_image_width = (point_1_x *100) / window.frames['iframe_scripture'].document.getElementById('pic').width;
-	area_percent_of_frame_width = ((point_1_x - point_2_x) * 100) /window.frames['iframe_scripture'].document.body.clientWidth;
-	times_to_zoom = 100 / area_percent_of_frame_width;
-
-	window.frames['iframe_scripture'].document.getElementById('pic').width = (window.frames['iframe_scripture'].document.getElementById('pic').width * times_to_zoom);
-
-	iframe_height = parseInt(document.getElementById('iframe_scripture').height.replace(/px/,""));
-	document.getElementById('iframe_scripture').contentWindow.document.body.scrollTop = ((point_2_y * times_to_zoom)-((iframe_height/2)));
-	document.getElementById('iframe_scripture').contentWindow.document.body.scrollLeft = (point_2_x * times_to_zoom);
-
-	\$('#slider_zoom').slider('value',parseInt(times_to_zoom*100));	
-	document.getElementById('zoom_display').innerHTML = parseInt(times_to_zoom*100)+"%";
-	//THIS IS TEMPORARY RESIZE SPECIFIC TO ONE BOOK -mike 2.6.10
-//	document.getElementById('text_space').style.fontSize = Math.round((times_to_zoom * 88))+"px";	
-//	document.getElementById('auto_expanded_font_size').innerHTML = Math.round((times_to_zoom * 88))+"px";	
-
-	var recorded_font_size = parent.side_bar.transcription.document.getElementById(document.getElementById('line_number').value).getAttribute('font_size').replace(/(px|\\s)/g,"");
-	document.getElementById('text_space').style.fontSize = Math.round((times_to_zoom * recorded_font_size))+"px";	
-	document.getElementById('auto_expanded_font_size').innerHTML = Math.round((times_to_zoom * recorded_font_size));	
-
- 
 	document.getElementById('display_times_to_zoom').innerHTML=times_to_zoom;
 }
-
 
 
 function set_highlight_in_scripture_small(point_2_x,point_2_y,point_1_x, point_1_y){
@@ -1258,17 +1229,6 @@ function eliminate_line_breaks(){
 	document.getElementById('text_space').innerHTML= document.getElementById('text_space').innerHTML.replace(/<div.+?<br>.+?div>/," ");	
 }
 
-function realign02(){
-  var line_num = document.getElementById('line_number').value;
-  area_percent_of_frame_width = ((parent.side_bar.transcription.document.getElementById(line_num).getAttribute('x2') - parent.side_bar.transcription.document.getElementById(line_num).getAttribute('x1')) * 100) /window.frames['iframe_scripture'].document.body.clientWidth;
-  times_to_zoom = 100 / area_percent_of_frame_width;
-  var old_x1 = Math.round((Math.round(parent.side_bar.transcription.document.getElementById(line_num).getAttribute('x1'))));
-  var old_y1 = Math.round((Math.round(parent.side_bar.transcription.document.getElementById(line_num).getAttribute('y1'))));
-  document.getElementById('realign_x').value = old_x1;
-  document.getElementById('realign_y').value = old_y1;
-  document.getElementById('realign_row').value = parent.side_bar.transcription.document.getElementById(parseInt(document.getElementById('line_number').value)).getAttribute('row');
-
-}
 
 function realign(){
   var line_num = document.getElementById('line_number').value;
@@ -1375,8 +1335,8 @@ function make_font_consistant(){
 }
 </script>
 <div id="mid_panel" name="mid_panel">
-<table><tr>
-<td>font size: </td><td><div id="slider_font_size" style="width:200px;" onClick="\$('#slider_font_size').slider('value',(\$('#slider_font_size').slider('value')-1));"></div></td><td><div id="font_size_display" style="display:inline"></div><input type="button" onClick="make_font_consistant();" value="set font for page"><div id="zoom_display" style="display:none;"></div></td>
+<table ><tr>
+<td>font size: </td><td><div id="slider_font_size" style="width:200px;" onClick="\$('#slider_font_size').slider('value',(\$('#slider_font_size').slider('value')-1));"></div></td><td><div id="font_size_display" style="display:none"></div><input type="button" style="display:none;"  onClick="make_font_consistant();" value="set font for page" ><div id="zoom_display" style="display:none;"></div></td>
 </tr><tr>
 <td>letter spacing:&nbsp;</td><td><div id="slider_kern" style="width:200px;" onClick="\$('#slider_kern').slider('value',(\$('#slider_kern').slider('value')-1));"></div></td><td><div id="kern_display" style="display:inline"></div></td>
 </tr></table>
@@ -1490,7 +1450,7 @@ print <<END;
 <br>
  
 
-<button id="btn_focus" name="btn_focus" onClick="place_cursor(0);" style="display:none;">focus</button>
+<button id="btn_focus" name="btn_focus" onClick="return_cursor(document.getElementById('text_space').childNodes[0],1);" style="display:none;">focus</button>
 
 <!--
 
@@ -1498,7 +1458,7 @@ print <<END;
 
 --!>
 
-<script> var myArray = new Array();</script>
+<script> var my_escapes = new Array();</script>
 
 
 <script> var myDiacritic = new Array();</script>
@@ -1514,7 +1474,7 @@ if($_=~/(\\|\')/){ #\ and ' require escaping
 
 
 
- print qq(<script>myArray['$escape_char$_'] = "$escape{$_}"; </script>\n);
+ print qq(<script>my_escapes['$escape_char$_'] = "$escape{$_}"; </script>\n);
 
 
 }
@@ -1604,7 +1564,7 @@ function return_percent(first, second){
 <\/script>
 
 <div  style="position:absolute;top:10px;left:400px;display:inline;">
-<table style = "display:inline;" border = "0" width="100%"><tr>
+<table style = "display:none;" border = "0" width="100%"><tr>
 
 <td>font size: </td><td><div id="slider_font_size" style="width:200px;" onClick="\$('#slider_font_size').slider('value',(\$('#slider_font_size').slider('value')-1));"></div></td><td><div id="font_size_display" style="display:inline"></div></td>
 <td>Combination resize: </td><td><div id="slider_font_special" onClick="\$('#slider_font_special').slider('value',(\$('#slider_font_special').slider('value')-1));" style="width:200px;"></div></td><td width="30"><div id="font_special_display" style="display:inline"></div></td>
@@ -1674,7 +1634,7 @@ function return_percent(first, second){
 
 
 
-
+<div id = "font_name_display" name = "font_name_display" size="1" style="display:inline"></div>    
 <!--
 
 <button onclick="doFormat('bold'); "><strong>B</strong></button> 
@@ -1683,7 +1643,7 @@ function return_percent(first, second){
 <button onclick="doFormat('SubScript');"><em>Sub</em></button> 
 <button onclick="doFormat('SuperScript');"><em>Su</em></button> 
 
-<div id = "font_name_display" name = "font_name_display" size="1" style="display:inline"></div>    
+
 --!>
 <!--
 <select id = "select_font" name = "select_font" onchange="document.execCommand('FontName',0,this.options[this.selectedIndex].text);prepare_set_font();document.getElementById('font_name_display').innerHTML=this.value;">
