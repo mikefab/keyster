@@ -1086,8 +1086,8 @@ function do_image_change_stuff(){
 
 //	setTimeout('fetch2();',100);
 
-  document.getElementById('first_width').innerHTML = document.getElementById('select_scripture').options[document.getElementById('select_scripture').selectedIndex].getAttribute('x_value');
-  document.getElementById('first_height').innerHTML = document.getElementById('select_scripture').options[document.getElementById('select_scripture').selectedIndex].getAttribute('y_value');
+  document.getElementById('first_width').innerHTML     = document.getElementById('select_scripture').options[document.getElementById('select_scripture').selectedIndex].getAttribute('x_value');
+  document.getElementById('first_height').innerHTML    = document.getElementById('select_scripture').options[document.getElementById('select_scripture').selectedIndex].getAttribute('y_value');
   document.getElementById('expanded_height').innerHTML = parseInt(document.getElementById('select_scripture').options[document.getElementById('select_scripture').selectedIndex].getAttribute('y_value')) + $height_expansion_increment;
   parent.side_bar.transcription.document.form_transcription.file_name.value=document.getElementById('select_scripture').value; 
   parent.side_bar.transcription.document.form_transcription.book.value=document.getElementById('select_book').value; 
@@ -1095,8 +1095,6 @@ function do_image_change_stuff(){
   parent.frames['side_bar'].frames['scripture_small'].document.getElementById('pic').src = 'books/' + document.getElementById('select_book').value + '/images/' + document.getElementById('select_scripture').value;
   window.frames['iframe_scripture'].document.getElementById('pic').src = 'books/' + document.getElementById('select_book').value + '/images_expanded/' + document.getElementById('select_scripture').value;
   window.frames['iframe_scripture'].document.getElementById('pic').width=  document.getElementById('first_width').innerHTML;
-
-  var image_percent_of_frame = (window.frames['iframe_scripture'].document.getElementById('pic').width/ window.frames['iframe_scripture'].document.body.clientWidth) * 100;
   parent.side_bar.transcription.document.form_transcription.submit(0);
   setTimeout("document.getElementById('iframe_scripture').contentWindow.document.body.scrollTop=300;",1000);
 }
