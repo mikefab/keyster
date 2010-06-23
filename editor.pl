@@ -13,6 +13,8 @@ foreach $line(<F>){
 	#$line=~s/\\/\\\\/g;
 
 	@line=split(/\t/,$line);
+	  $line[0]=~s/\s//;
+	  $line[1]=~s/\s//;
 	  utf8::encode($line[1]);
 	  utf8::decode($line[1]);
 	  utf8::encode($line[0]);
@@ -29,7 +31,7 @@ open(F,"diacritics.txt");
 foreach $line(<F>){
 	chomp;
 	$line=~s/\n//;
-  $line=~s/\s+//g;
+  $line=~s/\s//g;
 	#$line=~s/\\/\\\\/g;
  	$diacritic{"$line"}=qq(1);	
 }
@@ -152,6 +154,7 @@ function get_start_selection(){ //Returns left or right depending on where the u
 
 
 function check_character(character) { //Used on keyup and when a character button is pushed. Checks for escape characters, makes substitutions over single and multi nodes
+
 	var sel_start = get_start_selection(); //Returns left or right depending on which direction user made selection
 
  	if (window.getSelection) {
@@ -163,7 +166,7 @@ function check_character(character) { //Used on keyup and when a character butto
 			alert('find me and explain me');
 	    selObj.anchorNode.nodeValue = character;
 	  }
-	  var selection_length = selObj.toString().length; //Get length of selection string
+
 	  if(document.getElementById('text_space').innerHTML.length==0){ //LINE IS EMPTY, just insert character
  		  document.getElementById('text_space').innerHTML=character;
 		  selObj.nodeValue=character;
@@ -181,17 +184,20 @@ function check_character(character) { //Used on keyup and when a character butto
 	  if(cursorPos>0){ //If cursorPos is not 0, then selection does not begin or end at the start of a node.
 	    var pre  = selObj.anchorNode.nodeValue.substring(0,cursorPos);
 		  var post = selObj.anchorNode.nodeValue.substring(cursorPos,selObj.anchorNode.nodeValue.length);
+
       for (var i in my_escapes) {
 			  var escape_array = i.split("");
+
 			  if(!pre.substring(pre.length-3,pre.length).match("\\\\" + escape_array[2]  + "\\\\" + escape_array[2] + "") && (pre.substring(pre.length-2,pre.length).match("\\\\" + escape_array[2]  + escape_array[3] + "")) ){
 			    pre =pre.replace(/.{2}\$/,my_escapes[i]);
+
 		 	    selObj.anchorNode.nodeValue = pre+post;
 					t = pre.length +1;
 			    return_cursor(selObj.focusNode, t);
 			   return false; //Substitution is made. Should be able to exit here.
         }//No escape was found
       }// All my_escapes has been looped through.          
-      
+
 	    if(character){  ///User pressed character button
 		    if(selObj.anchorNode == selObj.focusNode){ //Selected area DOES NOT cross nodes
 		      pre  =  selObj.anchorNode.nodeValue.substring(0,cursorPos);		
@@ -204,6 +210,7 @@ function check_character(character) { //Used on keyup and when a character butto
 			    selObj.focusNode.nodeValue= pre + character + post;
 	        t= pre.length;
 			    if(!myDiacritic[character]){
+
 	    	    t++;
 			    }
 					t++;
@@ -227,7 +234,9 @@ function check_character(character) { //Used on keyup and when a character butto
 				  return_cursor(temp_node, 2);
 					return false; 
 		    }
+
 				//Not sure why I have the next 4 lines of code
+				alert("find and comment me");
 		    post =  post.substring(window.getSelection().toString().length,post.length);
 	      t=selObj.focusOffset;
         t+=2;	
@@ -259,16 +268,6 @@ function check_character(character) { //Used on keyup and when a character butto
 
 
 
-function getElementPos(n) {
-  var K = -1;
-  for (var i = n.parentNode.childNodes.length; i >= 0; i--){
- var n = parentNode.childNodes[i];
-
-     alert(i + " .. " + n.parentNode.childNodes[i].nodeType);
-  }
-}
-
-
 function return_cursor(the_node,len){ //the_node is 
 
   len--;
@@ -282,16 +281,6 @@ function return_cursor(the_node,len){ //the_node is
 }
 
 
-function place_cursor(length){
-	window.getSelection().removeAllRanges();	
-	var textC = document.getElementById('text_space').lastChild.childNodes[0];
-	var div = document.createRange();
-	div.setStart(textC, length);
-	div.setEnd(textC, length);
-	window.getSelection().addRange(div);
-	return false;
-}
-
 function roundNumber(rnum, rlength) { // Arguments: number to round, number of decimal places
   var newnumber = Math.round(rnum*Math.pow(10,rlength))/Math.pow(10,rlength);
   return newnumber;
@@ -299,8 +288,8 @@ function roundNumber(rnum, rlength) { // Arguments: number to round, number of d
 
 
 function do_slider_zoom_onmousedown_stuff(){
-document.getElementById('current_scroll_percent').innerHTML = return_percent((document.getElementById('iframe_scripture').contentWindow.document.body.scrollTop ),window.frames['iframe_scripture'].document.getElementById('pic').height);
-document.getElementById('current_scroll_width_percent').innerHTML = return_percent(document.getElementById('iframe_scripture').contentWindow.document.body.scrollLeft,window.frames['iframe_scripture'].document.getElementById('pic').width);
+  document.getElementById('current_scroll_percent').innerHTML = return_percent((document.getElementById('iframe_scripture').contentWindow.document.body.scrollTop ),window.frames['iframe_scripture'].document.getElementById('pic').height);
+  document.getElementById('current_scroll_width_percent').innerHTML = return_percent(document.getElementById('iframe_scripture').contentWindow.document.body.scrollLeft,window.frames['iframe_scripture'].document.getElementById('pic').width);
 	document.getElementById('current_scroll_top').innerHTML=document.getElementById('iframe_scripture').contentWindow.document.body.scrollTop;
 	document.getElementById('current_scroll_height').innerHTML=document.getElementById('iframe_scripture').contentWindow.document.body.scrollHeight;
 }
@@ -309,8 +298,6 @@ document.getElementById('current_scroll_width_percent').innerHTML = return_perce
 
 
 function do_key_down_stuff(event){
-
-
 
 //make font sticky
 if((document.getElementById('text_space').innerHTML.length<=0)&&(event.keyCode!=13)){
@@ -322,7 +309,8 @@ if((document.getElementById('text_space').innerHTML.length<=0)&&(event.keyCode!=
 //		document.getElementById('line_number').value =  1;
 //		go_to_line();
 //	} 
-	if(event.keyCode==35){document.getElementById('line_number').value =  parent.side_bar.transcription.lines.length;
+	if(event.keyCode==35){ //End key
+		document.getElementById('line_number').value =  parent.side_bar.transcription.lines.length;
 		go_to_line();
 	}
 	if(event.keyCode==33){ //page up = to to previous line
@@ -356,7 +344,6 @@ if((document.getElementById('text_space').innerHTML.length<=0)&&(event.keyCode!=
 	if (event.keyCode == 13){ //return key //I believe that the contentEditable div sneakes tags in sometimes on its own.
 	 	if(document.getElementById("text_space").innerHTML.match(/><br></i)){
 	 		document.getElementById("text_space").innerHTML =document.getElementById("text_space").innerHTML.replace(/<br>/ig," ");
-
 	 		document.getElementById('text_space_length').innerHTML="keyup empty with font tag";
 	 	}
 
@@ -388,18 +375,18 @@ function do_key_up_stuff(event){
 
 	if(event.keyCode==8 ){ //back space 
 		if(document.getElementById('text_space').innerHTML.length==0){
-			document.getElementById('text_space').innerHTML="<font face='Charis Sil'></font>";
+			document.getElementById('text_space').innerHTML="<font face='Charis Sil'></font>"; //This is just for the current books
 			setTimeout("document.getElementById('focus_text_space').focus();document.getElementById('focus_text_space').click();",400);
 			return false;
 		}
 	}
-	 if (event.keyCode == 13){
-
-	 	document.getElementById('focus_text_space').focus();
+	if (event.keyCode == 13){ //Return key was pressed
+	  document.getElementById('focus_text_space').focus();
 	 	document.getElementById('focus_text_space').click();
 	 	if(document.getElementById('should_scroll').innerHTML=='yes'){
 	 		scroll_iframe('standard');
 	 		document.getElementById('text_space').innerHTML='';
+
 	 	}
 	 	document.getElementById('focus_text_space').focus();
 	 	document.getElementById('focus_text_space').click(); 
@@ -410,16 +397,11 @@ function do_key_up_stuff(event){
 }
   
 function prepare_set_font(){
-document.getElementById('button_set_font').focus();
-document.getElementById('button_set_font').click();
+	document.getElementById('button_set_font').focus();	
+	document.getElementById('button_set_font').click();
 }
 
 
-
-function return_text_space_length(){
-    ctrl = document.getElementById('text_space');
-    return ctrl.innerHTML.length;
-}
 
 function xmlhttpPost(strURL,query_string) {
 
@@ -621,14 +603,12 @@ function do_initial_stuff(){
 
 
 function send_text(skip_line_num_change){
-
-  var image_first_height_px 	  = document.getElementById('first_height').innerHTML;
-  var image_original_height_px 	  = document.getElementById('expanded_height').innerHTML;
+  //calculates values for x1, x2, and y1 according to normal image.
   var image_height_px  		   	  = window.frames['iframe_scripture'].document.getElementById('pic').height;
   var distance_from_screen_middle = iframe_scripture.Zbrowse.height()/2;
   var test_distance 			  = distance_from_screen_middle;
   var scroll_top_px  			  = document.getElementById('iframe_scripture').contentWindow.document.body.scrollTop;
-  var percent_to_decrease_recorded_scroll_height  = 100 + (((image_original_height_px - image_height_px )/ image_height_px)*100);
+  var percent_to_decrease_recorded_scroll_height  = 100 + (((document.getElementById('expanded_height').innerHTML - image_height_px )/ image_height_px)*100);
   distance_from_screen_middle =  ((percent_to_decrease_recorded_scroll_height * distance_from_screen_middle)/100)+ parseFloat(document.getElementById('text_space').style.height.replace(/px/,""));
   y1 = ((percent_to_decrease_recorded_scroll_height * scroll_top_px)/100)+distance_from_screen_middle;
   y1 = roundNumber(((percent_to_decrease_recorded_scroll_height * scroll_top_px)/100)+distance_from_screen_middle,0)+1;
@@ -643,22 +623,21 @@ function send_text(skip_line_num_change){
   var x2 = roundNumber((x1 + x2_increment),0) ;
   var y2 = y1;
 
-  document.form_transcription.image_height_px.value = image_first_height_px;
+  document.form_transcription.image_height_px.value = document.getElementById('first_height').innerHTML;
   document.form_transcription.image_width_px.value  = image_original_width_px;
-  document.form_transcription.x2.value   = x2;
-  document.form_transcription.y2.value   = y2;
-  document.form_transcription.y1.value  = y1;
-  document.form_transcription.x1.value  = x1;
+  document.form_transcription.x2.value    = x2;
+  document.form_transcription.y2.value    = y2;
+  document.form_transcription.y1.value    = y1;
+  document.form_transcription.x1.value    = x1;
   document.form_transcription.book.value  = document.getElementById('select_book').value;
   //'<div>text</div>' somehow slips in sometimes. Not sure why.
   document.getElementById('text_space').innerHTML = document.getElementById('text_space').innerHTML.replace(\/<div>\/,"");
   document.getElementById('text_space').innerHTML = document.getElementById('text_space').innerHTML.replace(\/<\\/div>\/,"");
-  document.form_transcription.file_name.value	  		   = document.getElementById('select_scripture').value;
-  document.form_transcription.text_line.value	  	       = document.getElementById('text_space').innerHTML.replace(/"/g,"'");
-  document.form_transcription.rotation.value  = document.getElementById('rotation').innerHTML;
-  document.form_transcription.box_height.value  = document.getElementById('text_space').style.height.replace(/px/,"");
-
-  document.form_transcription.num.value  		  = document.getElementById('line_number').value;
+  document.form_transcription.file_name.value	    = document.getElementById('select_scripture').value;
+  document.form_transcription.text_line.value	    = document.getElementById('text_space').innerHTML.replace(/"/g,"'");
+  document.form_transcription.rotation.value      = document.getElementById('rotation').innerHTML;
+  document.form_transcription.box_height.value    = document.getElementById('text_space').style.height.replace(/px/,"");
+  document.form_transcription.num.value  		      = document.getElementById('line_number').value;
   //document.form_transcription.font_size.value  		  = document.getElementById('text_space').style.fontSize;
 
   var base = parseInt(document.getElementById('original_font_size').innerHTML.replace(/px/,""));
@@ -696,8 +675,6 @@ function send_text(skip_line_num_change){
   }
 }
 
-
-
 	function scroll_iframe(direction){
 		scroll_position= calculate_scroll_length(direction);
 		document.getElementById('iframe_scripture').contentWindow.scrollTo(document.getElementById('iframe_scripture').contentWindow.document.body.scrollLeft,scroll_position);
@@ -705,7 +682,9 @@ function send_text(skip_line_num_change){
 
 	function scroll_iframe_left_or_right(direction){
 		if (!document.getElementById('text_space').innerHTML.match(/^\s*\$/)){
-		}else{
+
+		}else{//If text space is empty, shift the box right or left. Currently must click one time per pixel. 
+
 			scroll_position= calculate_scroll_length(direction);
 			document.getElementById('iframe_scripture').contentWindow.scrollTo(scroll_position,document.getElementById('iframe_scripture').contentWindow.document.body.scrollTop);
 		}
@@ -835,10 +814,9 @@ function set_font_slider_options(font_type){
 				special_line_height_value = (ui.value*slider_font_percentage_for_line_height)/100;
 				special_height_value      = (ui.value*slider_font_percentage_for_height)/100;
 	
-//				document.form_transcription.font_size.value = ui.value +"px";
-document.form_transcription.box_height.value = special_height_value +"px";
 
-document.form_transcription.line_height.value = special_line_height_value +"px";
+				document.form_transcription.box_height.value = special_height_value +"px";
+				document.form_transcription.line_height.value = special_line_height_value +"px";
 
 
 				\$("#font_special_display").html(ui.value + "px");
@@ -869,7 +847,7 @@ document.form_transcription.line_height.value = special_line_height_value +"px";
 			max: 200,
 			value: 20,
 			slide: function(event, ui) {
-document.form_transcription.box_height.value = ui.value +"px";
+			document.form_transcription.box_height.value = ui.value +"px";
 
 				\$("#input_box_display").html(ui.value + "px");
 				\$("#text_space").css('height', ui.value);		
@@ -969,7 +947,6 @@ document.form_transcription.kern.value = ui.value +"px";
 
 
 function go_to_line(){
-
   var requested_line_number = document.getElementById('line_number').value;
   \$("#line_number_display").html(requested_line_number);
 
@@ -1124,32 +1101,6 @@ function do_image_change_stuff(){
   setTimeout("document.getElementById('iframe_scripture').contentWindow.document.body.scrollTop=300;",1000);
 }
 
-function do_image_change_stuff1(){
-
-  document.getElementById('call_status').innerHTML="please stand by";
-
-//uncomment this for former normal version
-//\$("#slider_zoom").slider('value',100);			
-//	document.getElementById('zoom_display').innerHTML=100;
-
-//	setTimeout('fetch2();',100);
-
-  document.getElementById('first_width').innerHTML = document.getElementById('select_scripture').options[document.getElementById('select_scripture').selectedIndex].getAttribute('x_value');
-  document.getElementById('first_height').innerHTML = document.getElementById('select_scripture').options[document.getElementById('select_scripture').selectedIndex].getAttribute('y_value');
-  document.getElementById('expanded_height').innerHTML = parseInt(document.getElementById('select_scripture').options[document.getElementById('select_scripture').selectedIndex].getAttribute('y_value')) + $height_expansion_increment;
-  parent.side_bar.transcription.document.form_transcription.image_width.value=document.getElementById('select_scripture').options[document.getElementById('select_scripture').selectedIndex].getAttribute('x_value');
-  parent.side_bar.transcription.document.form_transcription.image_height.value=document.getElementById('select_scripture').options[document.getElementById('select_scripture').selectedIndex].getAttribute('y_value');
-  parent.side_bar.transcription.document.form_transcription.file_name.value=document.getElementById('select_scripture').value; 
-  parent.side_bar.transcription.document.form_transcription.book.value=document.getElementById('select_book').value; 
-
-  parent.frames['side_bar'].frames['scripture_small'].document.getElementById('pic').src = "books/" + document.getElementById('select_book').value + "/images/" + document.getElementById('select_scripture').value;
-  window.frames['iframe_scripture'].document.getElementById('pic').src =                   "books/" + document.getElementById('select_book').value + "/images/" + document.getElementById('select_scripture').value;
-  window.frames['iframe_scripture'].document.getElementById('pic').width= document.getElementById('first_width').innerHTML;
-  var image_percent_of_frame = (window.frames['iframe_scripture'].document.getElementById('pic').width/ window.frames['iframe_scripture'].document.body.clientWidth) * 100;
-  parent.side_bar.transcription.document.form_transcription.submit(0);
-  setTimeout("document.getElementById('iframe_scripture').contentWindow.document.body.scrollTop=300;",1000);
-}
-
 
 
 
@@ -1293,7 +1244,6 @@ function realign_divs(old_x1, amount_to_increase_x,old_y1, amount_to_increase_y)
 
 <div id="browser_message"></div>
 <div id="div_realign_number" name="div_realign_number" style="display:none"></div>
-<div id="selection_length" name="selection_length" style="display:none;";></div>
 <div id="display_times_to_zoom" name="display_times_to_zoom" style="display:none;"></div>
 <div id="original_font_size" name="original_font_size" style="display:none;"></div>
 <div id="auto_expanded_font_size" style="display:none;" name="auto_expanded_font_size"></div>
@@ -1524,14 +1474,6 @@ print <<END;
 	<div id="first_width" style="display:none;"></div>
 	<div id="expanded_height" style="display:none;"></div>
 	
-<div id="node_data" style="display:none">
-	node position:<div id="node_position" style="display:inline;"></div>
-	cursor position: <div id="cursor_position" style="display:inline;"></div>
-	Selection length: <div id="selection_length" style="display:inline;"></div>
-	<br>
-	parent info:<div id="parent_info" style="display:inline;"></div>
-	<div id="cursor_position_html" name ="cursor_position_html"></div>
-</div>
 
 
 
@@ -1695,7 +1637,7 @@ function return_percent(first, second){
 <div id = "image_height" style = "display:none;">height</div>
 <div id = "div_scripture" name = "iframe_scripture"  style = "position:absolute;top:250px;width:100%;height:350px;" >
   <iframe MARGINWIDTH ="0" MARGINHEIGHT= "0" id = "iframe_scripture" name = "iframe_scripture" style="position:absolute;" width = "98%" height = "400px" src="scripture.html"  ></iframe>
-  <div id = "text_space"  onmouseup="" onmousedown="window.getSelection().removeAllRanges();" onkeydown = "do_key_down_stuff(event);"  onkeyup="do_key_up_stuff(event);check_character();document.getElementById('selection_length').innerHTML=window.getSelection().toString().length;" contentEditable="true" style="height:20px;line-height:20px;letter-spacing:0px;font-size:20px;width:97%;position:absolute;top:200px;left:2px;background-color:yellow;"></div>
+  <div id = "text_space"  onmouseup="" onmousedown="window.getSelection().removeAllRanges();" onkeydown = "do_key_down_stuff(event);"  onkeyup="do_key_up_stuff(event);check_character();" contentEditable="true" style="height:20px;line-height:20px;letter-spacing:0px;font-size:20px;width:97%;position:absolute;top:200px;left:2px;background-color:yellow;"></div>
   <div id="panel_char_buttons" name = "panel_char_buttons" style="position:absolute;top:450px;width:90%;">
 <div style="float:left;">
   <button id ="btn_next_page_2" name="btn_next_page2" onClick="next_page();" style="display:inline;">Next page</button>
@@ -1740,6 +1682,7 @@ for(@characters){ #create button panel
   	next;
 	}
 	$character=~s/\s//g;
+	$l=length($character);
   print qq(<input class="button" type="button" id="some_button"  name="some_button" onClick = "check_character('$character');" title="$reverse_escape{$_}"  value="$_">);
 }
 
