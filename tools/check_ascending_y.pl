@@ -25,7 +25,10 @@ foreach $file(sort readdir DIR){
 	foreach $col(sort keys%cols){
 		$c=0;
 	  foreach $y(@$col){
-			print qq($file $hash{"$col$y"} $hash{"$col@$col[$c-1]"}* $col - $y - @$col[$c-1]\n) if $y<@$col[$c-1] && $y;
+		  $amount= @$col[$c-1]-$y;
+#			print qq($file $hash{"$col$y"} $hash{"$col@$col[$c-1]"}* $col - $y - @$col[$c-1]....$amount\n) if $y<@$col[$c-1] && $y;
+			print qq($file $hash{"$col$y"} $hash{"$col@$col[$c-1]"}* $col - $y - @$col[$c-1]....$amount\n) if $amount>20 && $y;
+
 			$c++;
 		}
 	}

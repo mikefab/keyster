@@ -7,6 +7,8 @@ for(sort readdir DIR){
 	while($line=<F>){
 		$num=undef;
 		$num=$2 if ($line=~/(num=")(.+?)(")/);
-		print "$_ $num\n" if $line=~/\*/;
+		print "* $_ $num\n" if $line=~/\*/ ;
+		print "^ $_ $num\n" if $line=~/\^/;
+		print "ff $_ $num\n" if $line=~/\f/;
 	}
 }

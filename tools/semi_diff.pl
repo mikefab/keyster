@@ -53,8 +53,8 @@ foreach $file(sort(readdir DIR)){
 			}
 		  }
 		  $diff = $pre_length-$post_length;
-	  if($pre_length>$post_length){
-#	   if($diff>2){	
+#	  if($pre_length>$post_length){
+   if($diff>3){	
 		  	print "..$file $line_counter_all $pre_length $post_length diff: $diff $line[$i] **** $text \n";
 		 }
 		  close F;

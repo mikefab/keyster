@@ -14,18 +14,17 @@ for(sort readdir DIR){
 	close F;
 
 	foreach $line(split(/\n/,$data)){
-		$col=undef; $row=undef; $text=undef;
-		if($line=~/(row=")(.+?)(")/){
-			$row=$2;
+		$num=undef; $text=undef;
+		if($line=~/(num=")(.+?)(")/){
+			$num=$2;
 		}
 
 		if($line=~/(>)(.*?)(<\/line>)/){
 			$text=$2;
-			$text=~ s/<[^>]*>//gs;
 
 		}
-		if($row){
-			$hash{$row}.=qq($text\t);
+		if($num){
+			$hash{$num}.=qq($text\t);
 		}
 	}
 

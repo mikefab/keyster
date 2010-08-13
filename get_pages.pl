@@ -2,7 +2,7 @@
 
 use CGI qw(:standard);
 use CGI::Carp qw(warningsToBrowser fatalsToBrowser);
-use Image::Size; //used here to get height and width values for each unexpanded image item.
+use Image::Size; #used here to get height and width values for each unexpanded image item.
 require Encode;
 
 print header(-charset => 'UTF-8');

@@ -1,0 +1,6 @@
+#bookname	x	y	height	width	viewwidth columns
+#
+book14a	997	531	131	949	949	table
+book14	997	531	131	949	949	table
+book16	758	600	129	1277	742	2
+book17	606	1160	252	429	382	table

@@ -2,11 +2,12 @@
 use Image::Pbm();
 use Image::Size;
 $book = $ARGV[0];
+mkdir "../books/$book/images_expanded";
 opendir(DIR,"../books/$book/images")||die "can't open ../books/$book/images :$!";
-@files = readdir(DIR);
-splice(@files,0,2);
-foreach $image_name(@files){
 
+
+foreach $image_name(readdir DIR){
+	next if $image_name=~/(^\.|thumbs.db)/i;
 #$image_name = $files[4];
   
   	($globe_x, $globe_y) = imgsize("../books/$book/images/$image_name");
@@ -20,7 +21,7 @@ foreach $image_name(@files){
 #	  $form{"image_name"} =~s/\..{3}$//;	
 #	  $call = system("pngtopnm ../books/$book/images/$image_name.png> ../books/$book/images_expanded/test.pbm");
 ## }
-
+print "width: $image_name $globe_x\n";
   my $i = Image::Pbm->new(-width => $globe_x, -height => 300 );
   # $i->line     ( 2, 2, 22, 22 => 1 );
   # $i->rectangle( 4, 4, 40, 20 => 1 );

@@ -155,6 +155,10 @@ function get_start_selection(){ //Returns left or right depending on where the u
 
 function check_character(character) { //Used on keyup and when a character button is pushed. Checks for escape characters, makes substitutions over single and multi nodes
 
+  if(document.getElementById('text_space').innerHTML.length==0 && !character){
+
+		return false; //user hit arrow key in emtpy text box.
+	}
 	var sel_start = get_start_selection(); //Returns left or right depending on which direction user made selection
 
  	if (window.getSelection) {
@@ -163,7 +167,7 @@ function check_character(character) { //Used on keyup and when a character butto
   	  return false;
     }
     if ((selObj.anchorNode == null) && (character)){ //I'm not able to trigger this. Had before: User has clicked a button in Characters panel. Insert character and then look behind it for possible escape.
-			alert('find me and explain me');
+
 	    selObj.anchorNode.nodeValue = character;
 	  }
 
@@ -210,7 +214,6 @@ function check_character(character) { //Used on keyup and when a character butto
 			    selObj.focusNode.nodeValue= pre + character + post;
 	        t= pre.length;
 			    if(!myDiacritic[character]){
-
 	    	    t++;
 			    }
 					t++;
@@ -386,7 +389,6 @@ function do_key_up_stuff(event){
 	 	if(document.getElementById('should_scroll').innerHTML=='yes'){
 	 		scroll_iframe('standard');
 	 		document.getElementById('text_space').innerHTML='';
-
 	 	}
 	 	document.getElementById('focus_text_space').focus();
 	 	document.getElementById('focus_text_space').click(); 
@@ -666,12 +668,12 @@ function send_text(skip_line_num_change){
 
   document.getElementById('btn_ajax').click();
   if(!skip_line_num_change){
-	document.getElementById('text_space').innerHTML="";
-	current_line_num++;
-	document.getElementById('line_number').value = current_line_num;
-	document.getElementById('line_number').value = current_line_num;
-	go_to_line();	
-	setTimeout("document.getElementById('btn_eliminate_line_breaks').click();",500);
+		document.getElementById('text_space').innerHTML="";
+		current_line_num++;
+		document.getElementById('line_number').value = current_line_num;
+		document.getElementById('line_number').value = current_line_num;
+		go_to_line();	
+		setTimeout("document.getElementById('btn_eliminate_line_breaks').click();",500);
   }
 }
 
@@ -1017,10 +1019,14 @@ function set_test_position(x1,y1,x2, y2){
 	set_highlight_in_scripture_small(x1, y1,x2, y2);
 	//add 300 to the y points so they fit in the buffer version of the image
 	y1 = parseInt(y1)+300; //NEEDED for buffered images
-
-	window.frames['iframe_scripture'].document.getElementById('pic').width = document.getElementById('first_width').innerHTML;
+//get width of unexpanded image. bad naming on my part.
+	window.frames['iframe_scripture'].document.getElementById('pic').width = document.getElementById('first_width').innerHTML; 
+//The percentage of image over the frame?
 	percent_of_frame_width = (window.frames['iframe_scripture'].document.getElementById('pic').width * 100)/ window.frames['iframe_scripture'].document.body.clientWidth;
+
+//percent of image to be viewed?
 	percent_of_image_width = (x2 *100) / window.frames['iframe_scripture'].document.getElementById('pic').width;
+
 	area_percent_of_frame_width = ((x2 - x1) * 100) /window.frames['iframe_scripture'].document.body.clientWidth;
 	times_to_zoom = 100 / area_percent_of_frame_width;
 
@@ -1187,6 +1193,8 @@ function eliminate_line_breaks(){
 
 function realign(){
   var line_num = document.getElementById('line_number').value;
+
+  //Determine the percentage of original image with shown in window
   area_percent_of_frame_width = ((parent.side_bar.transcription.document.getElementById(line_num).getAttribute('x2') - parent.side_bar.transcription.document.getElementById(line_num).getAttribute('x1')) * 100) /window.frames['iframe_scripture'].document.body.clientWidth;
   times_to_zoom = 100 / area_percent_of_frame_width;
   var new_y1 = document.getElementById('iframe_scripture').contentWindow.document.body.scrollTop + (iframe_scripture.Zbrowse.height()/2);
@@ -1202,18 +1210,6 @@ function realign(){
 }
 
 
-function realign_o(){
-  var line_num = document.getElementById('line_number').value;
-  area_percent_of_frame_width = ((parent.side_bar.transcription.document.getElementById(line_num).getAttribute('x2') - parent.side_bar.transcription.document.getElementById(line_num).getAttribute('x1')) * 100) /window.frames['iframe_scripture'].document.body.clientWidth;
-  times_to_zoom = 100 / area_percent_of_frame_width;
-  var old_y1 = Math.round((300+ Math.round(parent.side_bar.transcription.document.getElementById(line_num).getAttribute('y1')))*times_to_zoom);
-  var new_y1 = document.getElementById('iframe_scripture').contentWindow.document.body.scrollTop + (iframe_scripture.Zbrowse.height()/2);
-  var old_x1 = Math.round((Math.round(parent.side_bar.transcription.document.getElementById(line_num).getAttribute('x1')))*times_to_zoom);
-  var new_x1 = document.getElementById('iframe_scripture').contentWindow.document.body.scrollLeft;
-  var amount_to_increase_y = new_y1-old_y1;	  
-  var amount_to_increase_x = new_x1-old_x1;
-  realign_divs(parseInt(parent.side_bar.transcription.document.getElementById(line_num).getAttribute('x1')),Math.round(amount_to_increase_x/times_to_zoom),parseInt(parent.side_bar.transcription.document.getElementById(line_num).getAttribute('y1')),Math.round(amount_to_increase_y/times_to_zoom));
-}
 
 function realign_divs(old_x1, amount_to_increase_x,old_y1, amount_to_increase_y){
 
@@ -1314,9 +1310,12 @@ do_image_change_stuff();
 }
 
 function go_to_next_asterisk(){
+
 	var flag=0;
-	var start_num = parseInt(document.getElementById('line_number').value);
-	if(start_num){start_num++;}
+	var start_num = parseInt(document.getElementById('line_number').value);//Set start num to current line.
+	if(start_num){
+		start_num++; //Increment line number
+	}
 	start_num = start_num || 1;
 	for(i=start_num; i<=199; i++){
 		if (parent.side_bar.transcription.document.getElementById(i).innerHTML.match(/\\*/)){
@@ -1329,7 +1328,7 @@ function go_to_next_asterisk(){
 	if(flag==0){
 		for(i=1; i<=start_num; i++){
 			if (parent.side_bar.transcription.document.getElementById(i).innerHTML.match(/\\*/)){
-				document.getElementById('line_number').value = i;ge
+				document.getElementById('line_number').value = i;
 				go_to_line();
 				flag=1;
 				break;
@@ -1410,7 +1409,7 @@ print <<END;
 
 
 
---!>
+--!>fin
 
 <script> var my_escapes = new Array();</script>
 
@@ -1434,12 +1433,7 @@ if($_=~/(\\|\')/){ #\ and ' require escaping
 }
 
 for(keys %diacritic){
-
-
-
  print qq(<script>myDiacritic["$_"] = "1"; </script>\n);
-
-
 }
 
 
