@@ -101,26 +101,29 @@ print <<END;
 
 <script>
 function go_to_first_available_line(){
+	//first check if this is a reload after realignment. If so, then go to that last realigned line
 	var temp = parent.parent.frames['editor'].document.getElementById('div_realign_number').innerHTML;
 	if(temp.match(/\\d/)){
 		parent.parent.frames['editor'].document.getElementById('line_number').value = temp;
 		parent.parent.frames['editor'].document.getElementById('button_go_to_line').click();
 		return false;
 	}
+
 	for(i=1; i<=199; i++){
 		if (document.getElementById(i).style.display=="inline"){
 			parent.parent.frames['editor'].document.getElementById('line_number').value = i;
 			parent.parent.frames['editor'].document.getElementById('button_go_to_line').click();
 			break;
 		}
-
+//Must be a an empty page?
 			parent.parent.frames['editor'].document.getElementById('line_number').value = 1;
 			parent.parent.frames['editor'].document.getElementById('button_go_to_line').click();
 	}
 }
-function load_alignment_points(){
 
-  parent.parent.frames['editor'].document.getElementById('view_width').value = "$view_width";
+//Sets points in fix_xml area for aligning first column. For rotation
+function load_alignment_points(){
+	parent.parent.frames['editor'].document.getElementById('view_width').value = "$view_width";
   parent.parent.frames['editor'].document.getElementById('Mouse1X').value = Math.round(document.getElementById(1).getAttribute('x1'));
   parent.parent.frames['editor'].document.getElementById('Mouse1Y').value = Math.round(document.getElementById(1).getAttribute('y1'));
   parent.parent.frames['editor'].document.getElementById('Mouse2X').value = Math.round(document.getElementById($last_row_of_col_1).getAttribute('x1'));
@@ -240,7 +243,6 @@ print <<END;
 
 
 		<form action = "transcription.pl" method = "post" id = "form_transcription" name = "form_transcription" >
-		
 			<input type = hidden id = "image_width" name = "image_width" />
 			<input type = hidden id = "image_height" name = "image_height" />
 			<input type = hidden id = "file_name" name = "file_name" />

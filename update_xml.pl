@@ -14,10 +14,11 @@ foreach my $p (param()) {
 $file_name = $form{'file_name'};
 $file_name =~s/\..{2,3}$/.xml/i;
 
-$form{text_line}=~ s/<[^>]*>//gs; 
+#$form{text_line}=~ s/<[^>]*>//gs; 
 $form{text_line} =~s/semicolonxxx/;/g;
 $form{text_line} =~s/ampersandxxx/&/g;
 $form{text_line} =~s/^\s+//;
+$form{text_line} =~s/&nbsp;/ /g;
 #$form{text_line}=~s/<font face='Charis Sil'>//g;
 #$form{text_line}=~s/<\/font>//g;
 $form{kern}     =~s/^0px//;
